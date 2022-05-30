@@ -157,7 +157,7 @@ list<token_t> split_to_list(const string &s) {
     return rslt;
 }
 
-// could be cleanded up by replacing code duplications with lambdas
+// could probably be cleaned up even more
 double process_double_sweep(const string &s) {
     double result = 0.0;
     list<token_t> tokens = split_to_list(s);
@@ -166,17 +166,25 @@ double process_double_sweep(const string &s) {
         return 0.0;
     }
     auto it_val1 = tokens.begin();
+    auto it_val2 = tokens.begin();
     auto it_op = next(it_val1);
-    while ( it_op != tokens.end() ) {
+
+    auto erase_and_replace = [&tokens, &it_val1, &it_val2, &it_op]() {
+        cout << *it_val1 << " " << *it_op << " " << *it_val2 << endl; 
         double val1 = get<double>(*it_val1);
-        char op = get<char>(*it_op);
-        auto it_val2 = next(it_op);
         double val2 = get<double>(*it_val2);
+        char op = get<char>(*it_op);
+        double val3 = process_expr(val1, val2, op);
+        tokens.erase(it_val2);
+        tokens.erase(it_op);
+        *it_val1 = val3;        
+    };
+
+    while ( it_op != tokens.end() ) {
+        char op = get<char>(*it_op);
+        it_val2 = next(it_op);
         if (op == '*' || op == '/') {
-            double val3 = process_expr(val1, val2, op);
-            tokens.erase(it_val2);
-            tokens.erase(it_op);
-            *it_val1 = val3;
+            erase_and_replace();
         } else {
             it_val1 = it_val2;
         }
@@ -184,15 +192,14 @@ double process_double_sweep(const string &s) {
     }
     it_val1 = tokens.begin();
     it_op = next(it_val1);
+
+    cout << "loop 2" << endl;
+    for (auto token : tokens)  { cout << token << " "; } 
+    cout << endl;
+
     while (it_op != tokens.end()) {
-        double val1 = get<double>(*it_val1);
-        char op = get<char>(*it_op);
-        auto it_val2 = next(it_op);
-        double val2 = get<double>(*it_val2);
-        double val3 = process_expr(val1, val2, op);
-        tokens.erase(it_val2);
-        tokens.erase(it_op);
-        *it_val1 = val3;
+        it_val2 = next(it_op);
+        erase_and_replace();
         it_op = next(it_val1);
     }
     result = get<double>(*it_val1);
