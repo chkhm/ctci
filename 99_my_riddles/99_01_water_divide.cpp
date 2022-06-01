@@ -1,6 +1,13 @@
 
 //
-// given a map (as a 2D matrix) where each value represents the altitude at the given (x,y) coordinate.
+// I found this a particularly difficult riddle for a CI.
+//
+// I admit that I failed that one and did not get the job. I do find the question
+// too difficult for a 1h session.
+//
+// The riddle:
+// -----------
+// Given a map (as a 2D matrix) where each value represents the altitude at the given (x,y) coordinate.
 // calculate the water divide where the water flows either to the top/right side or the bottom/ left 
 // side.
 //
@@ -23,6 +30,25 @@
 //  points marked with v flow nowhere
 //  points marked with x flow either u or d. (i.e. they are the divide points)
 //
+
+//
+// Improvement ideas:
+//   I think that breadth search rather than depth search would more efficient
+//   The solution strategy is dynamic programming were you should make re-use of results from
+//   previous "runs". This solution is not making any re-use.
+//   The results from previous searches should be reused like this:
+//     - result matrix collects results from previous runs
+//     - stop if the search finds a field covered in a previous run and re-use that result
+//
+// Style: 
+//  - I tried to make this very "functional" rather than object-oriented
+//    so the functions have a lot of parameters
+//    style could be improved by making them lambdas and capture the re-used variables
+//
+//  - too many ugly if statements with complicated logic
+//    there must be a way to simplify this ugliness
+//
+
 
 #include <cassert>
 #include <iostream>
@@ -165,6 +191,7 @@ list_coord_t get_possible_neighbours(const vec2d_t &v, vec_bool2d_t &util_matrix
         }
     }
     // the loop makes the neighbours that go into the ocean come first
+    // this should improve the performance
     for (auto it= rslt.begin(); it != rslt.end(); it++) {
         if (it->first < 0 || it->second < 0 || it->first >= height || it->second >= width) {
             final_rslt.push_front(*it);
