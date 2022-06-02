@@ -182,6 +182,7 @@ list_coord_t get_possible_neighbours(const vec2d_t &v, vec_bool2d_t &util_matrix
         }
     }
 
+    // experimenting with re-ordering the neighbours to have oceans first
     // return rslt;
 
     // the loop makes the neighbours that go into the ocean come first
