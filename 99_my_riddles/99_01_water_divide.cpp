@@ -1,13 +1,13 @@
 
 //
-// I found this a particularly difficult riddle for a CI.
+// I found this a particularly difficult riddle for a CI to be solved on a whiteboard.
 //
 // I admit that I failed that one and did not get the job. I do find the question
 // too difficult for a 1h session.
 //
 // The riddle:
 // -----------
-// Given a map (as a 2D matrix) where each value represents the altitude at the given (x,y) coordinate.
+// Given a map (as a 2D matrix) where each value represents the elevation at the given (x,y) coordinate.
 // calculate the water divide where the water flows either to the top/right side or the bottom/ left 
 // side.
 //
@@ -27,18 +27,12 @@
 //    7  1 3 2 1 1 3 2 2     d d d d d x x x
 //
 //  points marked with u flow up or right. points marked with d flow down or left.
-//  points marked with v flow nowhere
+//  points marked with v flow nowhere (valley)
 //  points marked with x flow either u or d. (i.e. they are the divide points)
-//
 
 //
 // Improvement ideas:
 //   I think that breadth search rather than depth search would more efficient
-//   The solution strategy is dynamic programming were you should make re-use of results from
-//   previous "runs". This solution is not making any re-use.
-//   The results from previous searches should be reused like this:
-//     - result matrix collects results from previous runs
-//     - stop if the search finds a field covered in a previous run and re-use that result
 //
 // Style: 
 //  - I tried to make this very "functional" rather than object-oriented
@@ -47,8 +41,9 @@
 //
 //  - too many ugly if statements with complicated logic
 //    there must be a way to simplify this ugliness
+//  - maybe I should have avoided the negative coordinates (representing ocean)
+//    in the end they are a reason for many of the if statements
 //
-
 
 #include <cassert>
 #include <iostream>
@@ -76,6 +71,20 @@ using vec_bool_t = vector<bool>;
 using vec_bool2d_t = vector<vec_bool_t>;
 using coord_t= pair<int, int>;
 using list_coord_t= list<coord_t>;
+
+int height(const vec2d_t &v) {
+    return v.size();
+}
+int width(const vec2d_t &v) {
+    return v[0].size();
+}
+int row(const coord_t &p) {
+    return p.first;
+}
+int col(const coord_t &p) {
+    return p.second;
+}
+
 
 ostream &operator<<(ostream &os, const vec_t& v) {
     copy(v.begin(), v.end(), ostream_iterator<int>(os, " "));
@@ -126,98 +135,87 @@ ostream &operator<<(ostream &os, const list_coord_t &c) {
     return os;
 }
 
-
 point_t get_point_type(const vec2d_t &v, coord_t p) {
-    int height = v.size();
-    int width = v[0].size();
-    int row = p.first;
-    int col = p.second;
-    if (row < 0 && col < 0) { 
-        cerr << "ERROR: row:" << row << " col: " << col << endl; 
+    if (row(p) < 0 && col(p) < 0) { 
+        cerr << "ERROR: row:" << row(p) << " col: " << col(p) << endl; 
         exit(-1); 
     }
-    if (row >= height && col >= width) { 
-        cerr << "ERROR: row:" << row << " col: " << col << endl; 
+    if (row(p) >= height(v) && col(p) >= width(v)) { 
+        cerr << "ERROR: row:" << row(p) << " col: " << col(p) << endl; 
         exit(-1); 
     }
-    if (row < 0) { return up_right; }
-    if (row >= height) { return down_left; }
-    if (col < 0) { return down_left; }
-    if (col >= width) { return up_right; }
+    if (row(p) < 0) { return up_right; }
+    if (row(p) >= height(v)) { return down_left; }
+    if (col(p) < 0) { return down_left; }
+    if (col(p) >= width(v)) { return up_right; }
     return land;
-}
-
-bool is_visited_or_ocean(const vec2d_t &v, vec_bool2d_t &util_matrix, coord_t p) {
-    point_t point_type = get_point_type(v, p);
-    if (point_type == up_right || point_type == down_left) { 
-        return true; 
-    }
-    if (util_matrix[p.first][p.second]) {
-        return true;
-    }
-    return false;
 }
 
 list_coord_t get_possible_neighbours(const vec2d_t &v, vec_bool2d_t &util_matrix, coord_t start_point) {
     list_coord_t rslt;
     list_coord_t final_rslt;
-    int height = v.size();
-    int width = v[0].size();
 
     // we don't have neighbours for an ocean point
-    if (start_point.first < 0 || start_point.second < 0 || 
-        start_point.first >= height || start_point.second >= width) {
+    if (row(start_point) < 0 || col(start_point) < 0 || 
+        row(start_point) >= height(v) || col(start_point) >= width(v)) {
         return rslt;
     }
 
     vector<coord_t> potential_neighbours = { 
-        {start_point.first-1, start_point.second},
-        {start_point.first+1, start_point.second}, 
-        {start_point.first, start_point.second-1}, 
-        {start_point.first, start_point.second+1} 
+        { row(start_point)-1, col(start_point) },
+        { row(start_point)+1, col(start_point) }, 
+        { row(start_point), col(start_point)-1 }, 
+        { row(start_point), col(start_point)+1 } 
     };
 
     for (auto n : potential_neighbours) {
-        if (n.first < -1 || n.second < -1 || n.first > height || n.second > width) {
-            // do nothing
-        } else if ((n.first < 0 && n.second < 0 ) || (n.first >= height && n.second >= width)) {
-            // do nothing
-        } else if (n.first == -1 || n.second == -1 || n.first == height || n.second == width) {
+        if (row(n) < -1 || col(n) < -1 || row(n) > height(v) || col(n) > width(v)) {
+            // do nothing: we don't go deeper into the ocean
+        } else if ((row(n) < 0 && col(n) < 0 ) || (row(n) >= height(v) && col(n) >= width(v))) {
+            // do nothing: we don't go to (-1,-1) or (height+1, width+1)
+        } else if (row(n) == -1 || col(n) == -1 || row(n) == height(v) || col(n) == width(v)) {
             rslt.push_back(n);
-        } else if (!util_matrix[n.first][n.second]) {
-            if (v[start_point.first][start_point.second] >= v[n.first][n.second]) {
+        } else if (!util_matrix[row(n)][col(n)]) {
+            if (v[row(start_point)][col(start_point)] >= v[row(n)][col(n)]) {
                 rslt.push_back(n);
             }
         }
     }
+
+    // return rslt;
+
     // the loop makes the neighbours that go into the ocean come first
     // this should improve the performance
+    /* */
     for (auto it= rslt.begin(); it != rslt.end(); it++) {
-        if (it->first < 0 || it->second < 0 || it->first >= height || it->second >= width) {
+        if (row(*it) < 0 || col(*it) < 0 || row(*it) >= height(v) || col(*it) >= width(v)) {
             final_rslt.push_front(*it);
         } else {
             final_rslt.push_back(*it);
         }
     }
     return final_rslt;
+    /* */
 }
 
+// this is a simple complexity checker to see if the number goes down with some tweaking of the algo
 static int global_count = 0;
-
-bool recursive_find(const vec2d_t &v, vec_bool2d_t &util_matrix, point_t ocean, coord_t start_point) {
+bool recursive_find(const vec2d_t &v, vec_point2d_t &r, vec_bool2d_t &util_matrix, point_t ocean, coord_t start_point) {
     global_count++;
-    // if (global_count >= 200) { exit(0); }
-    // cout << "recursive_find: " << start_point << " ocean: " << ocean;
+
     point_t p_type = get_point_type(v, start_point);
-    // cout << " p_type: " << p_type << endl;
     if (p_type == ocean) { return true; }
     if (p_type == land) {
-        util_matrix[start_point.first][start_point.second] = true; // mark as visited
+        // profit from history
+        point_t r_pt = r[row(start_point)][col(start_point)];
+        if (r_pt == divide || r_pt == ocean) {
+            return true;
+        }
+        util_matrix[row(start_point)][col(start_point)] = true; // mark as visited
     }
     list_coord_t neighbours = get_possible_neighbours(v, util_matrix, start_point);
-    // cout << start_point << " neighbours: " << neighbours << endl;
     for (auto coord : neighbours) {
-        bool rslt = recursive_find(v, util_matrix, ocean, coord);
+        bool rslt = recursive_find(v, r, util_matrix, ocean, coord);
         if (rslt) { return true; }
     }
     return false;
@@ -228,7 +226,6 @@ bool recursive_find(const vec2d_t &v, vec_bool2d_t &util_matrix, point_t ocean, 
 // It returns true if found and false otherwise
 //
 // idea:
-//   Adapted Deijkstra:
 //     - create a util matrix marking off visited nodes
 //     - recursive algo:
 //         if (point is ocean) { return true }
@@ -239,30 +236,23 @@ bool recursive_find(const vec2d_t &v, vec_bool2d_t &util_matrix, point_t ocean, 
 //              rslt = recursive_call with point
 //              if rslt is true: return true
 //         return false
-bool find_path_to_ocean(const vec2d_t &v, point_t ocean, coord_t start_point) {
-    int height = v.size();
-    int width = v[0].size();
-    vec_bool2d_t util_matrix(height, vec_bool_t(width, false));
-    bool rslt = recursive_find(v, util_matrix, ocean, start_point);
+bool find_path_to_ocean(const vec2d_t &v, vec_point2d_t &r, point_t ocean, coord_t start_point) {
+    vec_bool2d_t util_matrix(height(v), vec_bool_t(width(v), false));
+    bool rslt = recursive_find(v, r, util_matrix, ocean, start_point);
     return rslt;
 }
 
 // 
 // idea:
-//  - iterate over all points and call mark_path_to_oceans
+//  - iterate over all points and call find_path_to_oceans
 //
 vec_point2d_t mark_water_divide(const vec2d_t &v) {
-    int height = v.size();
-    int width  = v[0].size();
-    vec_point2d_t rslt(height, vec_point_t(width, unkown));
-    for (int row = 0; row < height; row++) {
-        for (int col = 0; col < width; col++) {
-            //if (row ==1 && col == 2) {
-            //    cout << endl << endl << endl << endl;
-            //}
+    vec_point2d_t rslt(height(v), vec_point_t(width(v), unkown));
+    for (int row = 0; row < height(v); row++) {
+        for (int col = 0; col < width(v); col++) {
             coord_t c {row, col};
-            bool path_to_up_ocean_exists = find_path_to_ocean(v, up_right, c );
-            bool path_to_down_ocean_exists = find_path_to_ocean(v, down_left, c);
+            bool path_to_up_ocean_exists = find_path_to_ocean(v, rslt, up_right, c );
+            bool path_to_down_ocean_exists = find_path_to_ocean(v, rslt, down_left, c);
             if (path_to_up_ocean_exists && path_to_down_ocean_exists) {
                 rslt[row][col] = divide;
             } else if (path_to_up_ocean_exists) {
@@ -272,7 +262,6 @@ vec_point2d_t mark_water_divide(const vec2d_t &v) {
             } else {
                 rslt[row][col] = valley;
             }
-            // if (row == 1 && col == 2) { return rslt; } 
         }
     }
     return rslt;
@@ -305,6 +294,9 @@ int main(int argc, char **argv) {
     vec_point2d_t r = mark_water_divide(v);
     cout << r << endl;
     assert(r == r_expected);
+    cout << "recursion counter: " << global_count << endl;
+
+    return 0;
 }
 
 
