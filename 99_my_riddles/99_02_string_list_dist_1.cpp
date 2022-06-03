@@ -6,6 +6,8 @@
 //  
 //  Example:  has_pair_with_dist_1 ({ "hello", "hllo", "blabla"})  --> true becaue one insert or delete will make "hello" and "hllo" equal.
 //
+//  "abcde", "bcdfe" --> 2
+//
 //  Further questioning will lead to definition of legal edits:
 //    - insert
 //    - delete
