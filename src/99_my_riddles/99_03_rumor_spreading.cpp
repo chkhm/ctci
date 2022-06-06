@@ -106,7 +106,6 @@ unordered_map<timestamp_t, list_meeting_t> group_by_timestamp(const list_meeting
     return rslt;
 }
 
-
 vector<timestamp_t> all_keys(unordered_map<timestamp_t, list_meeting_t> grouped_meetings) {
     vector < timestamp_t> rslt;
     auto key_of = [](auto pair) {return pair.first; };
@@ -142,7 +141,7 @@ set_pid_t union_of(const set_pid_t& s1, const set_pid_t& s2) {
 
 
 //
-// potentialy expensive
+// potentialy expensive (n^2)
 // search for ways to reduce
 list_meeting_t merge_meetings(list_meeting_t& v) {
     list_meeting_t rslt;
@@ -169,8 +168,6 @@ list_meeting_t merge_meetings(list_meeting_t& v) {
 //     aggregated_meetings = merge meetings if they have at least one common person
 //     for each aggregated meeting:
 //          if at least one person of aggregated meeting is in result set then merge aggregated meeting persons to result set
-
-
 set_pid_t who_knows_it_sorted(const list_meeting_t &v, int first_person) {
     set_pid_t rslt;
     rslt.insert(first_person);
@@ -197,7 +194,6 @@ int main(int argc, char **argv) {
     set_pid_t expected_rslt2 = { 1, 2, 3 };
     set_pid_t expected_rslt3 = { 1, 2, 3, 4, 5 };
 
-
     cout << input_vec1 << endl;
     set_pid_t rslt1 = who_knows_it_sorted(input_vec1, 1);
     cout << rslt1 << endl << endl;
@@ -213,7 +209,6 @@ int main(int argc, char **argv) {
     assert(rslt1 == expected_rslt1);
     assert(rslt2 == expected_rslt2);
     assert(rslt3 == expected_rslt3);
-
 
     return 0;
 }
