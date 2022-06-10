@@ -25,6 +25,9 @@
 
 using namespace std;
 
+using vec_double_t = vector<double>;
+
+
 template<typename T>
 ostream& operator<<(ostream& os, const vector<T>& vec) {
 	os << "{ ";
@@ -35,13 +38,23 @@ ostream& operator<<(ostream& os, const vector<T>& vec) {
 	return os;
 }
 
-
 enum operand_t {
 	op_mult = '*',
 	op_add = '+',
-	op_brac_open = '(',
-	op_brac_close = ')'
+	op_br_open = '(',
+	op_br_close = ')'
 };
+
+ostream& operator<<(ostream& os, operand_t op) {
+	switch (op) {
+	case op_mult: os << '*'; break;
+	case op_add: os << '+'; break;
+	}
+	return os;
+}
+
+
+using vec_op_t = vector<operand_t>;
 
 //
 // Idea:
@@ -55,6 +68,7 @@ enum operand_t {
 //  Algo:
 //   iterate through vector:
 //     take current number (a) and next number (b)
+//     if next number is end of vector: use "a" and return
 //     if a > 1 and b > 1: use "a*"
 //     if a > 1 and b = 1: 
 //        get_sequence_length_of_ones
@@ -71,22 +85,123 @@ enum operand_t {
 //           if a < b: use "(a+1)*(1+1)*(1+0+1)..(1+1)*"
 //           else:     use "a*(1+1)*(1+0+1)..(1+1)*(1+b)" set b to (1+b)
 //     set a to b
-pair<string, double> find_max_operands(const vector<double>& values) {
 
-	struct term_t {
-		int m_start_idx;
-		int m_end_idx;
-		int m_value;
-		string m_term;
-	};
 
-	int i = 0;
-	while (i < values.size()) {
+enum value_type_t {
+	is_zero,
+	is_lte_one,
+	is_lg_one
+};
+
+using seq_data_t = pair<value_type_t, int>;
+
+
+class Term {
+public:
+	Term() {};
+	virtual ~Term() {}
+	virtual double value() const =0;
+};
+
+class TermValue : public Term {
+public:
+	TermValue(double v) : m_value(v) {}
+	virtual ~TermValue() {}
+	virtual double value() const { return m_value; }
+private:
+	double m_value;
+};
+
+class TermAdd : public Term {
+public:
+	TermAdd(Term* a, Term* b) : m_a(a), m_b(b) {};
+
+	virtual double value() const { return m_a->value() + m_b->value(); }
+
+private:
+	Term* m_a;
+	Term *m_b;
+};
+
+class TermMult : public Term {
+	TermMult(Term* a, Term* b) : m_a(a), m_b(b) {};
+	virtual double value() const { return m_a->value() * m_b->value(); }
+
+private:
+	Term* m_a;
+	Term* m_b;
+};
+
+
+class MaxFinder {
+public:
+	MaxFinder(const vec_double_t& v)
+		: m_input(v)
+	{}
+
+	int len() {
+		return m_input.size();
+	}
+
+	double val(int idx) {
+		return m_input[idx];
+	}
+
+	value_type_t value_type(double v) {
+		if (v == 0.0) {
+			return is_zero;
+		}
+		else if (v <= 1.0) {
+			return is_lte_one;
+		}
+		else {
+			return is_lg_one;
+		}
+	}
+
+	seq_data_t get_next_sequence(int start_idx) {
+		int i = start_idx;
+		value_type_t seq_value_type = value_type(m_input[start_idx]);
+		while (i < len() && value_type(val(i)) == seq_value_type) {
+			i++;
+		}
+		return { seq_value_type, i };
+	}
+
+	void add_sequence(seq_data_t seq_data) {
 
 	}
 
-	return { "", 0.0 };
-}
+	pair<string, double> find_max_operands() {
+		int i = 0;
+		seq_data_t seq_data = {is_zero, 0};
+		while (i < len()) {
+			int start_idx = i;
+			seq_data = get_next_sequence(i);
+			add_sequence(seq_data);
+			i = seq_data.second;
+		}
+
+		return { "", 0.0 };
+	}
+
+private:
+	const vec_double_t& m_input;
+	Term* m_rslt;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int main(int argc, char** argv) {
 	vector<double> input1 = { 3, 4, 5, 1 };
