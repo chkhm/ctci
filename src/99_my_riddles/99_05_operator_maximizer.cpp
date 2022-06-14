@@ -31,7 +31,15 @@
 //
 // urgh, that was difficult.
 // also, I'm not sure if it works with doubles, e.g. something like { 1.1, 0.1, 0.1, 1.1, 1.3 } -- > (1.1 + 0.1) * (0.1 + 1.1) * (1.3)
+//                                                                  { 1.1, 0.3, 0.3, 0.8, 0.5 } -- > (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
+//                                                                                                        1.4                1.6 = 2.24  // diff(1.4, 1.6) = 0.2 or var(1.4, 1.6) = 0.01
+//                                                                                                   (1.1 + 0.3 + 0.3) * (0.8 + 0.5)
+//                                                                                                        1.7                1.3 = 2.21  // diff(1.7, 1.3) = 0.4 or var(1.7, 1.3) = 0.04
+//                                                                  so, we probably want to minimize variance for each expression
 // probably need to split that sequence one at a time, always preferring the lower side
+//
+// we need an algorithm that does a step-wise optimization like this: 
+//    (1.1) * (0.3 + 0.3 + 0.8) (0.5) --> (1.1) * (0.3 + 0.3 + 0.8 + 0.5) --> (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
 //
 
 
