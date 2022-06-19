@@ -1,5 +1,6 @@
 
 //
+// (1) Problem Description
 // write a function that takes an array of values as input and chooses the operators that aggregate the values
 // so that they maximize the outcome
 // 
@@ -10,12 +11,12 @@
 //  The following are all possible operands: *, +, -, and () parenthesis 
 // 
 //
-// Ex:
+// (2) Examples:
 // input is{ 3,4,5,1 } -- > output: 72  3 * 4 * (5 + 1)
 // input is{ 1,1,1,5 } -- > output: 15  (1 + 1 + 1) * 5
 // 
-// Solution idea:
-//   - maintain a result list of expressions - an exression represent a set of number connected by '+' and surrounded by '(' ')'
+// (3) Solution idea:
+//   - maintain a result list of expressions - an exression represent a set of numbers connected by '+' and surrounded by '(' ')'
 //   - group the input into sequences where a sequence either contains only numbers less or equal to 1 or alternatively only numbers greater than 1
 //   - if the sequence is of type greater than 1:  for each value in the sequence add a single value expression to the result list
 //   - if the sequence is of type less or equal 1: build an expression and keep adding the values from the sequence until the sequence is greater 1: e.g.: {1, 1, 0, 1, 1, 1} --> (1+1+0), (1+1), (1)
@@ -24,11 +25,12 @@
 //   - iterate over the list of expressions: If you find one smaller or equal one, merge it with either the left or right neighbour, depending on which is smaller
 // 
 // 
-// Follow up: How would you deal with negative numbers:
+// (4) Follow up: How would you deal with negative numbers:
 //    - a simple solution could be to turn all negative numbers positive like this:  input: { -2,3 } -- > output: 6  -(-2) * 3 = 6
 //    - if this is considered cheating: if there is an even number lower than -1: keep multiplying them (minus times minus is positive); the negative larger or equal -1 are subtracted
 //                                      else:                                     keep multiplying them except for the largest (closest to -1) which is subtracted; the negative larger or equal -1 are subtracted
 //
+// (5) Discussion of solution
 // urgh, that was difficult.
 // also, I'm not sure if it works with doubles, e.g. something like { 1.1, 0.1, 0.1, 1.1, 1.3 } -- > (1.1 + 0.1) * (0.1 + 1.1) * (1.3)
 //                                                                  { 1.1, 0.3, 0.3, 0.8, 0.5 } -- > (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
@@ -38,8 +40,18 @@
 //                                                                  so, we probably want to minimize variance for each expression
 // probably need to split that sequence one at a time, always preferring the lower side
 //
+// (6) New idea for floating point numbers
 // we need an algorithm that does a step-wise optimization like this: 
-//    (1.1) * (0.3 + 0.3 + 0.8) (0.5) --> (1.1) * (0.3 + 0.3 + 0.8 + 0.5) --> (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
+//    { 1.1, 0.3, 0.3, 0.8, 0.5 } --> (1.1) * (0.3 + 0.3 + 0.8) (0.5) --> (1.1) * (0.3 + 0.3 + 0.8 + 0.5) --> (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
+//         0. Input                        1. step: rough grouping               2. step: expr. <= 1.0           3. step: minimize variance
+// 
+// 
+// we could implement this with a forward + backward sweep:
+//   - Forward sweep: steps 1 and 2 are done as described above in section (3). 
+//   - Backward sweep: if an expression is > 1.0 when removing some numbers from its fron side, remove them and balance them between this and the previous expression
+//                     the balancing is done by always adding them to the lowest of the two expressions
+//
+// to be honest: not sure if this will always be sufficient. To make sure, the forward/ backward sweeps could be repeated until nothing changes anymore. This will eventually stabilize.
 //
 
 
@@ -53,7 +65,7 @@
 
 using namespace std;
 
-using v_t = int;
+using v_t = double;
 using vec_t = vector<v_t>;
 
 
