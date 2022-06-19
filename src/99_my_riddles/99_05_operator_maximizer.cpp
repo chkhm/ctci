@@ -17,12 +17,12 @@
 // 
 // (3) Solution idea:
 //   - maintain a result list of expressions - an exression represent a set of numbers connected by '+' and surrounded by '(' ')'
-//   - group the input into sequences where a sequence either contains only numbers less or equal to 1 or alternatively only numbers greater than 1
-//   - if the sequence is of type greater than 1:  for each value in the sequence add a single value expression to the result list
-//   - if the sequence is of type less or equal 1: build an expression and keep adding the values from the sequence until the sequence is greater 1: e.g.: {1, 1, 0, 1, 1, 1} --> (1+1+0), (1+1), (1)
-//                                                 the last entry might be smaller or equal to 1, that's ok for now.
+//   - group the input into sequences where a sequence either contains only numbers less or equal than 2 or alternatively only numbers greater or equal than 2
+//   - if the sequence is of type greater than 2:  for each value in the sequence add a single value expression to the result list
+//   - if the sequence is of type less or equal 2: build an expression and keep adding the values from the sequence until the sequence is greater or equal to 2: e.g.: {1, 1, 0, 1, 1, 1} --> (1+1+0), (1+1), (1)
+//                                                 the last entry might be smaller than 2, that's ok for now.
 // 
-//   - iterate over the list of expressions: If you find one smaller or equal one, merge it with either the left or right neighbour, depending on which is smaller
+//   - iterate over the list of expressions: If you find one smaller or equal 2, merge it with either the left or right neighbour, depending on which is smaller
 // 
 // 
 // (4) Follow up: How would you deal with negative numbers:
@@ -32,30 +32,35 @@
 //
 // (5) Discussion of solution
 // urgh, that was difficult.
-// also, I'm not sure if it works with doubles, e.g. something like { 1.1, 0.1, 0.1, 1.1, 1.3 } -- > (1.1 + 0.1) * (0.1 + 1.1) * (1.3)
-//                                                                  { 1.1, 0.3, 0.3, 0.8, 0.5 } -- > (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
-//                                                                                                        1.4                1.6 = 2.24  // diff(1.4, 1.6) = 0.2 or var(1.4, 1.6) = 0.01
-//                                                                                                   (1.1 + 0.3 + 0.3) * (0.8 + 0.5)
-//                                                                                                        1.7                1.3 = 2.21  // diff(1.7, 1.3) = 0.4 or var(1.7, 1.3) = 0.04
+// also, I'm not sure if it works with doubles, e.g. something like { 2.1, 0.1, 0.1, 2.1, 2.3 } -- > (2.1 + 0.1) * (0.1 + 2.1) * (2.3) = 11.132
+//                                                                  { 2.1, 0.3, 0.3, 1.8, 0.5 } -- > (2.1 + 0.3) * (0.3 + 1.8 + 0.5)   = 6.24
+//                                                                                                        2.4                2.6 = 6.24  // diff(2.4, 2.6) = 0.2 or var(2.4, 2.6) = 0.01
+//                                                                                                   (2.1 + 0.3 + 0.3) * (1.8 + 0.5)   = 6.21
+//                                                                                                        2.7                2.3 = 6.21  // diff(2.7, 2.3) = 0.4 or var(2.7, 2.3) = 0.04
 //                                                                  so, we probably want to minimize variance for each expression
 // probably need to split that sequence one at a time, always preferring the lower side
 //
 // (6) New idea for floating point numbers
 // we need an algorithm that does a step-wise optimization like this: 
-//    { 1.1, 0.3, 0.3, 0.8, 0.5 } --> (1.1) * (0.3 + 0.3 + 0.8) (0.5) --> (1.1) * (0.3 + 0.3 + 0.8 + 0.5) --> (1.1 + 0.3) * (0.3 + 0.8 + 0.5)
+//    { 2.1, 0.3, 0.3, 1.8, 0.5 } --> (2.1) * (0.3 + 0.3 + 1.8) (0.5) --> (2.1) * (0.3 + 0.3 + 1.8 + 0.5) --> (2.1 + 0.3) * (0.3 + 1.8 + 0.5)
 //         0. Input                        1. step: rough grouping               2. step: expr. <= 1.0           3. step: minimize variance
 // 
 // 
 // we could implement this with a forward + backward sweep:
 //   - Forward sweep: steps 1 and 2 are done as described above in section (3). 
-//   - Backward sweep: if an expression is > 1.0 when removing some numbers from its fron side, remove them and balance them between this and the previous expression
+//   - Backward sweep: if an expression is >= 2.0 when removing some numbers from its front side, remove them and balance them between this and the previous expression
 //                     the balancing is done by always adding them to the lowest of the two expressions
 //
 // to be honest: not sure if this will always be sufficient. To make sure, the forward/ backward sweeps could be repeated until nothing changes anymore. This will eventually stabilize.
 //
+//
+//
+
 
 
 #include <cassert>
+#include <cmath>
+
 #include <iostream>
 #include <vector>
 #include <list>
@@ -95,8 +100,8 @@ ostream& operator<<(ostream& os, operator_t op) {
 }
 
 enum value_type_t {
-	is_lte_one,
-	is_gt_one
+	is_lt_two,
+	is_gte_two
 };
 
 using seq_data_t = pair<value_type_t, int>;
@@ -108,32 +113,32 @@ public:
 
 	void move_end_to(int new_end_idx) {
 		m_end_idx = new_end_idx;
-		assert(m_end_idx > m_start_idx);
+		assert(m_end_idx >= m_start_idx);
 		assert(m_end_idx <= m_vec.size());
 	}
 
 	void move_start_to(int new_start_idx) {
 		m_start_idx = new_start_idx;
-		assert(m_start_idx < m_end_idx);
+		assert(m_start_idx <= m_end_idx);
 		assert(m_start_idx >= 0);
 	}
 
-
 	void offset_right_end(int n) {
 		m_end_idx += n;
-		assert(m_end_idx > m_start_idx);
+		assert(m_end_idx >= m_start_idx);
 		assert(m_end_idx <= m_vec.size());
 	}
 
 	void offset_left_end(int n) {
 		m_start_idx += n;
-		assert(m_start_idx < m_end_idx);
+		assert(m_start_idx <= m_end_idx);
 		assert(m_start_idx >= 0);
 	}
 
 	v_t operator[](int idx) { return m_vec[m_start_idx + idx]; }
 	int start_idx() const { return m_start_idx; }
 	int end_idx() const { return m_end_idx;  }
+	int len() const { return m_end_idx - m_start_idx; }
 	v_t sum() {
 		v_t total = 0;
 		for (int i = m_start_idx; i < m_end_idx; i++) {
@@ -152,7 +157,9 @@ public:
 			else {
 				rslt += '+';
 			}
-			rslt += std::to_string(m_vec[i]);
+			char buf[1024];
+			sprintf(buf, "%.1f", m_vec[i]);
+			rslt += buf;   // std::to_string(m_vec[i]);
 		}
 		rslt += ')';
 		return rslt;
@@ -179,11 +186,11 @@ public:
 	}
 
 	value_type_t value_type(v_t v) {
-		if (v <= 1) {
-			return is_lte_one;
+		if (v < 2) {
+			return is_lt_two;
 		}
 		else {
-			return is_gt_one;
+			return is_gte_two;
 		}
 	}
 
@@ -203,7 +210,7 @@ public:
 		int group_idx = start_idx;
 		for (int i = start_idx; i < end_idx; i++) {
 			current_val += m_input[i];
-			if (current_val > 1) {
+			if (current_val >= 2) {
 				rslt.push_back(Expr(m_input, group_idx, i + 1));
 				current_val = 0;
 				group_idx = i + 1;
@@ -215,13 +222,13 @@ public:
 		return rslt;
 	}
 
-	void add_all_gt_one_sequence(int start_idx, int end_idx) {
+	void add_all_gte_two_sequence(int start_idx, int end_idx) {
 		for (int i = start_idx; i < end_idx; i++) {
 			m_rslt.push_back(Expr(m_input, i, i + 1));
 		}
 	}
 
-	void add_all_le_one_sequence(int start_idx, int end_idx) {
+	void add_all_lt_two_sequence(int start_idx, int end_idx) {
 		v_t total_v2 = 0;
 		list<Expr> l2 = construct_expressions(start_idx, end_idx);
 
@@ -262,30 +269,35 @@ public:
 
 	pair<string, v_t> find_max_operators() {
 		int i = 0;
-		seq_data_t seq_data = {is_lte_one, 0};
+		seq_data_t seq_data = {is_lt_two, 0};
 		while (i < len()) {
 			int start_idx = i;
 			seq_data = get_next_sequence(i);
-			if (seq_data.first == is_gt_one) {
-				add_all_gt_one_sequence(start_idx, seq_data.second);
+			if (seq_data.first == is_gte_two) {
+				add_all_gte_two_sequence(start_idx, seq_data.second);
 			}
 			else {
-				add_all_le_one_sequence(start_idx, seq_data.second);
+				add_all_lt_two_sequence(start_idx, seq_data.second);
 			}
 			i = seq_data.second;
 		}
 
 		for (auto it = m_rslt.begin(); it != m_rslt.end(); it++) {
-			if (it->sum() <= 1) {
-				v_t pred_sum = (it != m_rslt.begin()) ? prev(it)->sum() : 99999;
-				v_t next_sum = (next(it) != m_rslt.end()) ? next(it)->sum() : 99999;
+			if (it->sum() < 2) {
+				// distribute the elements over the left and right neighbor
+				while (it->len() > 0) {
+					v_t pred_sum = (it != m_rslt.begin()) ? prev(it)->sum() : 99999;
+					v_t next_sum = (next(it) != m_rslt.end()) ? next(it)->sum() : 99999;
+					if (pred_sum <= next_sum) {
+						prev(it)->move_end_to(it->start_idx() + 1);
+						it->offset_left_end(1);
+					}
+					else {
+						next(it)->move_start_to(it->end_idx()  - 1);
+						it->offset_right_end(-1);
+					}
+				}
 				auto tmp_it = prev(it);
-				if (pred_sum <= next_sum) {
-					prev(it)->move_end_to(it->end_idx());
-				}
-				else {
-					next(it)->move_start_to(it->start_idx());
-				}
 				m_rslt.erase(it);
 				it = tmp_it;
 			}
@@ -303,6 +315,19 @@ private:
 };
 
 
+bool operator==(const pair<string, v_t>& p1, const pair<string, v_t>& p2) {
+	if (p1.first != p2.first) {
+		return false;
+	}
+	double delta = abs(p1.second - p2.second);
+	double mx = max(p1.second, p2.second);
+	double tolerance = mx * 0.001; // we allow for 0.1% tolerance
+	if (delta < tolerance) {
+		return true;
+	}
+	return false;
+}
+
 int main(int argc, char** argv) {
 	vec_t input1 = { 3, 4, 5, 1 };
 	vec_t input2 = { 1, 1, 1, 5 };  // 2 * 6 vs 3 * 5
@@ -310,14 +335,17 @@ int main(int argc, char** argv) {
 	vec_t input4 = { 1, 1, 1, 1, 1, 2 }; //  (1 + 1) * (1 + 1 + 1) * 2 = 12
 	vec_t input5 = { 4, 1, 1, 1, 2, 1, 5 }; //  4 * (1 + 1 + 1) * (2 + 1) * 5 = 180
 	vec_t input6 = { 4, 1, 1, 1, 2, 1, 1, 5 }; //  4 * (1 + 1 + 1) * 2 * (1 + 1) * 5 = 240
+	vec_t input7 = { 2.1, 0.1, 0.1, 2.1, 2.3 }; // (2.1 + 0.1) * (0.1 + 2.1) * (2.3)
+	vec_t input8 = { 2.1, 0.3, 0.3, 1.8, 0.5 }; // (2.1 + 0.3) * (0.3 + 1.8 + 0.5)
 
-
-	pair<string, v_t> rslt1 = { "(3)*(4)*(5+1)", 72 };
-	pair<string, v_t> rslt2 = { "(1+1+1)*(5)", 15 };
-	pair<string, v_t> rslt3 = { "(3)*(1+2)", 9 };
-	pair<string, v_t> rslt4 = { "(1+1)*(1+1+1)*(2)", 12 };
-	pair<string, v_t> rslt5 = { "(4)*(1+1+1)*(2+1)*(5)", 180 };
-	pair<string, v_t> rslt6 = { "(4)*(1+1+1)*(2)*(1+1)*(5)", 240 };
+	pair<string, v_t> rslt1 = { "(3.0)*(4.0)*(5.0+1.0)", 72 };
+	pair<string, v_t> rslt2 = { "(1.0+1.0+1.0)*(5.0)", 15 };
+	pair<string, v_t> rslt3 = { "(3.0)*(1.0+2.0)", 9 };
+	pair<string, v_t> rslt4 = { "(1.0+1.0)*(1.0+1.0+1.0)*(2.0)", 12 };
+	pair<string, v_t> rslt5 = { "(4.0)*(1.0+1.0+1.0)*(2.0+1.0)*(5.0)", 180 };
+	pair<string, v_t> rslt6 = { "(4.0)*(1.0+1.0+1.0)*(2.0)*(1.0+1.0)*(5.0)", 240 };
+	pair<string, v_t> rslt7 = { "(2.1+0.1)*(0.1+2.1)*(2.3)", 11.132 };
+	pair<string, v_t> rslt8 = { "(2.1+0.3)*(0.3+1.8+0.5)", 6.24 };
 
 	MaxFinder f1(input1);
 	auto answer1 = f1.find_max_operators();
@@ -348,6 +376,19 @@ int main(int argc, char** argv) {
 	auto answer6 = f6.find_max_operators();
 	cout << "input: " << input6 << " --> " << answer6.first << " = " << answer6.second << endl;
 	assert(answer6 == rslt6);
+
+	cout << "input: " << input7 << " expected: " << rslt7.first << " = " << rslt7.second << endl;
+	MaxFinder f7(input7);
+	auto answer7 = f7.find_max_operators();
+	cout << "input: " << input7 << " --> " << answer7.first << " = " << answer7.second << endl;
+	assert(answer7 == rslt7);
+
+	// will fail at the moment
+	cout << "input: " << input8 << " expected: " << rslt8.first << " = " << rslt8.second << endl;
+	MaxFinder f8(input8);
+	auto answer8 = f8.find_max_operators();
+	cout << "input: " << input8 << " --> " << answer8.first << " = " << answer8.second << endl;
+	assert(answer8 == rslt8);
 
 	return 0;
 }
