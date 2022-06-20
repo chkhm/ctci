@@ -1,5 +1,9 @@
 
 //
+// 
+// @author: Christoph Kuhmuench (christoph.kuhmuench@email.de) 2022
+// 
+//
 // (1) Problem Description
 // write a function that takes an array of values as input and chooses the operators that aggregate the values
 // so that they maximize the outcome
@@ -39,6 +43,7 @@
 //                                                                                                        2.7                2.3 = 6.21  // diff(2.7, 2.3) = 0.4 or var(2.7, 2.3) = 0.04
 //                                                                  so, we probably want to minimize variance for each expression
 // probably need to split that sequence one at a time, always preferring the lower side
+// 06/19/2022 Implemented the above discussed splitting
 //
 // (6) New idea for floating point numbers
 // we need an algorithm that does a step-wise optimization like this: 
@@ -50,10 +55,15 @@
 //   - Forward sweep: steps 1 and 2 are done as described above in section (3). 
 //   - Backward sweep: if an expression is >= 2.0 when removing some numbers from its front side, remove them and balance them between this and the previous expression
 //                     the balancing is done by always adding them to the lowest of the two expressions
-//
+// 06/19/2022 Implemented the above discussed splitting
+// 
 // to be honest: not sure if this will always be sufficient. To make sure, the forward/ backward sweeps could be repeated until nothing changes anymore. This will eventually stabilize.
 //
 //
+// 06/19/2022 Final remarks:
+// I believe this solution works now under all circumstances. Code has some room for cleanup :-)
+// But since this is just a coding exercise I leave it as is.
+// 
 //
 
 
@@ -270,6 +280,7 @@ public:
 	pair<string, v_t> find_max_operators() {
 		int i = 0;
 		seq_data_t seq_data = {is_lt_two, 0};
+		// Step 1: build the expression list
 		while (i < len()) {
 			int start_idx = i;
 			seq_data = get_next_sequence(i);
@@ -282,6 +293,7 @@ public:
 			i = seq_data.second;
 		}
 
+		// Step 2: sweep forward: if expression < 2 then distribute it over its neighbours
 		for (auto it = m_rslt.begin(); it != m_rslt.end(); it++) {
 			if (it->sum() < 2) {
 				// distribute the elements over the left and right neighbor
@@ -303,6 +315,38 @@ public:
 			}
 		}
 
+		// Step3: sweep backwards: if expression > 2 even when removing elements from front then move to previous expression until difference between them is minimized
+		for (auto rit = m_rslt.rbegin(); rit != m_rslt.rend(); rit++) {
+			v_t next_sum = (next(rit) != m_rslt.rend()) ? next(rit)->sum() : 99999;
+			bool done = false;
+			int move_counter = 0;
+			// keep removing first element as long as we can and it makes sense
+			while (!done && rit->len() > 1 && rit->sum() > next_sum) {
+				rit->offset_left_end(1);
+				if (rit->sum() >= 2) {
+					next(rit)->offset_right_end(1);
+					++move_counter;
+				}
+				else {
+					rit->offset_left_end(-1);
+					done = true;
+				}
+				next_sum = (next(rit) != m_rslt.rend()) ? next(rit)->sum() : 99999;
+			}
+
+			// finally minimize the delta between rit and prev, but only if something has been moved
+			if (move_counter > 0 && next_sum != 99999) {
+				double delta1 = abs(next_sum - rit->sum());
+				rit->offset_left_end(-1);
+				next(rit)->offset_right_end(-1);
+				double delta2 = abs(next(rit)->sum() - rit->sum());
+				if (delta1 < delta2) {
+					rit->offset_left_end(1);
+					next(rit)->offset_right_end(1);
+				}
+			}
+		}
+
 		string rslt_str = get_result_string();
 		v_t rslt_v = get_result_v();
 
@@ -321,7 +365,7 @@ bool operator==(const pair<string, v_t>& p1, const pair<string, v_t>& p2) {
 	}
 	double delta = abs(p1.second - p2.second);
 	double mx = max(p1.second, p2.second);
-	double tolerance = mx * 0.001; // we allow for 0.1% tolerance
+	double tolerance = mx * 0.001; // we allow for 0.1% tolerance because of floating point incorrectness
 	if (delta < tolerance) {
 		return true;
 	}
@@ -338,14 +382,15 @@ int main(int argc, char** argv) {
 	vec_t input7 = { 2.1, 0.1, 0.1, 2.1, 2.3 }; // (2.1 + 0.1) * (0.1 + 2.1) * (2.3)
 	vec_t input8 = { 2.1, 0.3, 0.3, 1.8, 0.5 }; // (2.1 + 0.3) * (0.3 + 1.8 + 0.5)
 
-	pair<string, v_t> rslt1 = { "(3.0)*(4.0)*(5.0+1.0)", 72 };
-	pair<string, v_t> rslt2 = { "(1.0+1.0+1.0)*(5.0)", 15 };
-	pair<string, v_t> rslt3 = { "(3.0)*(1.0+2.0)", 9 };
-	pair<string, v_t> rslt4 = { "(1.0+1.0)*(1.0+1.0+1.0)*(2.0)", 12 };
-	pair<string, v_t> rslt5 = { "(4.0)*(1.0+1.0+1.0)*(2.0+1.0)*(5.0)", 180 };
-	pair<string, v_t> rslt6 = { "(4.0)*(1.0+1.0+1.0)*(2.0)*(1.0+1.0)*(5.0)", 240 };
-	pair<string, v_t> rslt7 = { "(2.1+0.1)*(0.1+2.1)*(2.3)", 11.132 };
-	pair<string, v_t> rslt8 = { "(2.1+0.3)*(0.3+1.8+0.5)", 6.24 };
+	pair<string, v_t> rslt1  = { "(3.0)*(4.0)*(5.0+1.0)", 72 };
+	pair<string, v_t> rslt2  = { "(1.0+1.0+1.0)*(5.0)", 15 };
+	pair<string, v_t> rslt3  = { "(3.0)*(1.0+2.0)", 9 };
+	pair<string, v_t> rslt4  = { "(1.0+1.0)*(1.0+1.0+1.0)*(2.0)", 12 };
+	pair<string, v_t> rslt4a = { "(1.0+1.0+1.0)*(1.0+1.0)*(2.0)", 12 };
+	pair<string, v_t> rslt5  = { "(4.0)*(1.0+1.0+1.0)*(2.0+1.0)*(5.0)", 180 };
+	pair<string, v_t> rslt6  = { "(4.0)*(1.0+1.0+1.0)*(2.0)*(1.0+1.0)*(5.0)", 240 };
+	pair<string, v_t> rslt7  = { "(2.1+0.1)*(0.1+2.1)*(2.3)", 11.132 };
+	pair<string, v_t> rslt8  = { "(2.1+0.3)*(0.3+1.8+0.5)", 6.24 };
 
 	MaxFinder f1(input1);
 	auto answer1 = f1.find_max_operators();
@@ -362,10 +407,11 @@ int main(int argc, char** argv) {
 	cout << "input: " << input3 << " --> " << answer3.first << " = " << answer3.second << endl;
 	assert(answer3 == rslt3);
 
+	cout << "input: " << input4 << " expected: " << rslt4.first << " = " << rslt4.second << " or " << rslt4a.first << " = " << rslt4a.second << endl;
 	MaxFinder f4(input4);
 	auto answer4 = f4.find_max_operators();
 	cout << "input: " << input4 << " --> " << answer4.first << " = " << answer4.second << endl;
-	assert(answer4 == rslt4);
+	assert(answer4 == rslt4 || answer4 == rslt4a);
 
 	MaxFinder f5(input5);
 	auto answer5 = f5.find_max_operators();
@@ -383,7 +429,7 @@ int main(int argc, char** argv) {
 	cout << "input: " << input7 << " --> " << answer7.first << " = " << answer7.second << endl;
 	assert(answer7 == rslt7);
 
-	// will fail at the moment
+	// will fail at the moment, needs the sweeping procedure
 	cout << "input: " << input8 << " expected: " << rslt8.first << " = " << rslt8.second << endl;
 	MaxFinder f8(input8);
 	auto answer8 = f8.find_max_operators();
