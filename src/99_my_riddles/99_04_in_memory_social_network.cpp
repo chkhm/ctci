@@ -5,6 +5,42 @@
 // network.The criteria is to pick someone with whom the given user has the most number of friends in common.
 //
 // Start by discussing the most suitable data structure, and implement all the objectsand functions.
+//
+// Domain discussion
+// -----------------
+// 
+// Subjects in the domain:
+// - person
+// - personstore
+// 
+// Relationships
+// - friendship
+//
+// Functions:
+// - addPerson(person) // member of personstore
+// - getPerson(id) // member of personstore
+// - addFriendship(personA, personB) // member of relationshipTable
+// - getSuggestedFriends(person) // member of relationshipTable
+//
+// Design Discussion
+// -----------------
+//
+// static view:
+//
+// class Personstore   --->
+//     [aggregates] (0,n)
+//         |
+//         | 
+//         |
+// class Person
+//         |
+//         |
+//  pairs<Person, [Person]>
+//         |
+//   [aggregates] (0,n)
+// class RelationShipTable
+//
+
 
 #include <iostream>
 
