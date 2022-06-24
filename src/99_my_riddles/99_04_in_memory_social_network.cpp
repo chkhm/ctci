@@ -41,7 +41,7 @@
 // class RelationShipTable
 //
 
-
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <set>
@@ -101,6 +101,13 @@ bool operator>(dist_pair_t &p1, dist_pair_t &p2) {
 	return p1.first > p2.first;
 }
 
+ostream& operator<<(ostream& o, const vector <dist_pair_t> &v) {
+	for (auto p : v) {
+		o << "{ " << p.first << ", " << p.second << " } ";
+	}
+	return o;
+}
+
 class PersonCollection {
 public:
 	PersonCollection() {};
@@ -113,29 +120,31 @@ public:
 
 	// finds the top 3 people of overlapping friends but not being friends already
 	// approach:
-	//  - maintain a "top 3" list: list_of_three
-	//  - go over all persons
-	//     o count overlapping friends
-	//     o keep the top 3 in the list_of_three
-	set_person_t suggestFriendsFor(const p_id_t &id) const {
+	//  - put all persons into a vector if they are not this person or already in the person's friend list
+	//  - turn the vector into a heap
+	//  - copy the top three into the result list
+	vector<dist_pair_t> suggestFriendsFor(const p_id_t &id) const {
 		Person &srcPerson = *m_persons.at(id);
-		set_person_t rslt;
-
-		vector<dist_pair_t> heap(m_persons.size());
-		auto it = m_persons.begin();
-		for (int i = 0; i < m_persons.size(); i++) {
-			if (it->first != id && it->second) {
+		vector<dist_pair_t> rslt;
+		vector<dist_pair_t> heap;
+		
+		for (auto it = m_persons.begin(); it != m_persons.end(); it++) {
+			if (it->first != id && !srcPerson.isFriend(it->first)) {
 				int overlapping_friends_count = srcPerson.countOverlappingFriends(*(it->second));
-				heap[i]= {overlapping_friends_count, it->first};
-				it++;
+				heap.push_back( { overlapping_friends_count, it->first } );
 			}
 		}
+		// cout << "Before make_heap: " << heap << endl;
 		make_heap(heap.begin(), heap.end());
+		// cout << " After make_heap: " << heap << endl;
+
 		for (int i = 0; i < 3; i++) { 
 			auto f = heap.front();
-			cout << "front: " << f.first << " " << f.second << endl;
-			rslt.insert(f.second);
+			// cout << "front: " << f.first << " " << f.second << endl;
+			rslt.push_back(f);
 			pop_heap(heap.begin(), heap.end());
+			// cout << " After  pop_heap: " << heap << endl;
+			heap.pop_back();
 		}
 		return rslt;
 	}
@@ -156,16 +165,16 @@ int main(int argc, char** argv) {
 		{ "g", "Dlastname", "Gfirstname", "g@gmail.com", {"f"}},
 	};
 
+	vector<dist_pair_t> expected_rslt = { {2, "f"}, {2, "c"}, {1, "e"} };
+
 	PersonCollection pc;
 	for (auto p : input_persons) {
 		pc.addPerson(p);
 	}
-	cout << "social network suggestion for q:" << endl;
 	auto rslt = pc.suggestFriendsFor("q");
-	for (auto x : rslt) {
-		cout << x << " ";
-	}
-	cout << endl;
+	cout << "social network suggestion for q:" << endl;
+	cout << rslt << endl;
+	assert(rslt == expected_rslt);
 
 	return 0;
 }
