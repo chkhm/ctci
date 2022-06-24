@@ -1,31 +1,40 @@
 
 //
+// Riddle Name: Continental Divide or Water Divide
+// -----------------------------------------------
+// 
+// The Continental Divide or Water Divide is defined as those places on an elevation map where water flows in either of two oceans.
+// For the United States the oceans would be the Pacific and the Atlantic.
+// 
 // I found this a particularly difficult riddle for a CI to be solved on a whiteboard.
 //
 // I admit that I failed that one and did not get the job. I do find the question
 // too difficult for a 1h session.
 //
-// The riddle:
+// The Riddle:
 // -----------
-// Given a map (as a 2D matrix) where each value represents the elevation at the given (x,y) coordinate.
-// calculate the water divide where the water flows either to the top/right side or the bottom/ left 
-// side.
+// Given an elevation map (as a 2D matrix) where each value represents the elevation at the given (x,y) coordinate,
+// calculate the water divide where the water flows either to the top/right side or the bottom/ left side.
 //
 // For simplicity water only flows left/ right or up/ down, not diagnoally
 // Water always flows down all sides that are same hight or lower
 //
-// example:
-//
-//
-//    0  1 2 2 3 1 2 2 3     x x x x u u u u
-//    1  2 4 2 2 3 5 3 1     x x x x x x u u
-//    2  1 5 2 6 4 2 3 1     d x x x x v u u 
-//    3  1 3 5 7 7 3 4 2 ==> d d x x x v u u
-//    4  2 2 4 6 8 4 2 1     d d d d x u u u
-//    5  1 3 2 5 6 7 7 1     d d d d d x x u
-//    6  3 2 2 2 2 3 2 7     d d d d d x x x
-//    7  1 3 2 1 1 3 2 2     d d d d d x x x
-//
+// Example:
+// --------
+// 
+//           0 1 2 3 4 5 6 7         0 1 2 3 4 5 6 7 
+// 
+//             Pacific
+//    0   A  1 2 2 3 1 2 2 3  P      x x x x u u u u   0
+//    1   t  2 4 2 2 3 5 3 1  a      x x x x x x u u   1
+//    2   l  1 5 2 6 4 2 3 1  c      d x x x x v u u   2
+//    3   a  1 3 5 7 7 3 4 2  i  ==> d d x x x v u u   3
+//    4   n  2 2 4 6 8 4 2 1  f      d d d d x u u u   4
+//    5   t  1 3 2 5 6 7 7 1  i      d d d d d x x u   5
+//    6   i  3 2 2 2 2 3 2 7  c      d d d d d x x x   6
+//    7   c  1 3 2 1 1 3 2 2         d d d d d x x x   7
+//            Atlantic
+// 
 //  points marked with u flow up or right. points marked with d flow down or left.
 //  points marked with v flow nowhere (valley)
 //  points marked with x flow either u or d. (i.e. they are the divide points)
