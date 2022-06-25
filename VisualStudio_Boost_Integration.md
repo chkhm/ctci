@@ -37,7 +37,7 @@ Integrate with MSBuild (this step does not help with cmake but helps if you work
 ```
 
 Now you can create your CMakeLists.txt file. This is how it should look like:
-```CMakeLists.txt
+```cmake
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
@@ -45,27 +45,41 @@ project(myproject)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED Tru
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# This is the important part, not mentioned anywhere!
 set(_VCPKG_INSTALLED_DIR D:/git/vcpkg/installed/x64-windows)
 
-set(BOOST_ROOT ${_VCPKG_INSTALLED_DIR})
-set(Boost_DIR ${_VCPKG_INSTALLED_DIR})
-set(Boost_NO_SYSTEM_PATHS ON)
 
-find_package(Boost 1.79.0 )
-if (Boost_FOUND)
+# This may or may not help... 
+#set(BOOST_ROOT ${_VCPKG_INSTALLED_DIR})
+#set(Boost_DIR ${_VCPKG_INSTALLED_DIR})
+#set(boost_random_DIR ${_VCPKG_INSTALLED_DIR})
+#set(Boost_NO_SYSTEM_PATHS ON)
+# set(Boost_NO_BOOST_CMAKE ON)
+
+find_package(Boost 1.79.0 COMPONENTS random) # COMPONENTS lexical_cast PATHS D:/git/vcpkg/packages) # ${_VCPKG_INSTALLED_DIR})
+
+#if (Boost_FOUND)
 	include_directories( ${Boost_INCLUDE_DIRS} )
-	add_executable(myexecutable myexecutable.cpp)
-	#target_link_libraries(myexecutable Boost::whatever)
-endif()
+	link_directories( ${Boost_LIB_DIRS} )
+	add_executable(my_exe my_exe.cpp)
+	target_link_libraries(my_exe ${Boost_LIBRARIES}) # D:/git/vcpkg/installed/x64-windows/lib/boost_random-vc140-mt.lib
+#endif()
 ```
 
 Apparently the key is to set the _VCPKG_INSTALLED_DIR! You can probably set this also somewhere in the CMakeSettings.json file. Let me know if you
 find a way to put it there.
 
-Funnyly enough, I did not need to specify a target link library yet. Maybe, this will be neccesary, if I use more Boost functionality.
+Eventually, you will also need to specify target link libraries. It is important to have vcpkg in your environment variable 'Path'. To do so, open the
+Windows environment varibale settings, and add:
+- D:\git\vcpkg
+- D:\git\vcpkg\installed\x64-windows\bin
+- D:\git\vcpkg\installed\x64-windows\debug\bin
+
+If you don't add these folders to the path then the DLLs will not be found.
+
+Getting cmake dealing with the Boost dependencies under Windows correctly is quite a nightmare.
+
 
 My CMakeSetting.json looks like this:
 ```json
@@ -118,11 +132,20 @@ Here is a tiny code snippet, to check out if this works:
 #include <iostream>
 #include <string>
 #include <boost/lexical_cast.hpp>
+// #include <boost/random/mersenne_twister.hpp>
+#include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 int main(int argc, char** argv) {
 	string str = "42";
 	int x = boost::lexical_cast<int>(str);
 	cout << "x: " << x << endl;
+
+    // boost::random::mt19937 rng;
+	boost::random::random_device rng;
+	boost::random::uniform_int_distribution<> ten(0, 10);
+	int randomNumber = ten(rng);
+	cout << "RandonNum: " << randomNumber << endl;
 
 	return 0;
 }

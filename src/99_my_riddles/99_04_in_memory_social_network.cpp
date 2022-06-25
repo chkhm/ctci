@@ -52,6 +52,9 @@
 #include <functional>
 
 #include <boost/lexical_cast.hpp>
+// #include <boost/random/mersenne_twister.hpp>
+#include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 
 using namespace std;
@@ -182,6 +185,12 @@ int main(int argc, char** argv) {
 	string str = "42";
 	int x = boost::lexical_cast<int>(str);
 	cout << "x: " << x << endl;
+
+	// boost::random::mt19937 rng;
+	boost::random::random_device rng;
+	boost::random::uniform_int_distribution<> ten(0, 10);
+	int randomNumber = ten(rng);
+	cout << "RandonNum: " << randomNumber << endl;
 
 	return 0;
 }
