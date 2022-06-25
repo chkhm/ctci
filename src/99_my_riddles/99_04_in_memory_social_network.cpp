@@ -51,6 +51,9 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/lexical_cast.hpp>
+
+
 using namespace std;
 
 using p_id_t = string;
@@ -175,6 +178,10 @@ int main(int argc, char** argv) {
 	cout << "social network suggestion for q:" << endl;
 	cout << rslt << endl;
 	assert(rslt == expected_rslt);
+
+	string str = "42";
+	int x = boost::lexical_cast<int>(str);
+	cout << "x: " << x << endl;
 
 	return 0;
 }
