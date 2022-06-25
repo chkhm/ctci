@@ -91,15 +91,23 @@ If you want Visual Studio syntax highlighting being able to find the Boost heade
 {
   "configurations": [
     {
+      "inheritEnvironments": [
+        "msvc_x64"
+      ],
       "name": "x64-Debug",
-      "generator": "Ninja",
-      "configurationType": "Debug",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\out\\build\\${name}",
-      "installRoot": "${projectDir}\\out\\install\\${name}",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
-      "cmakeToolchain": "D:/git/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      "includePath": [
+        "${env.INCLUDE}",
+        "D:/git/vcpkg/installed/x64-windows/include",
+        "${workspaceRoot}\\**"
+      ],
+      "defines": [
+        "WIN32",
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE"
+      ],
+      "intelliSenseMode": "windows-msvc-x64",
+      "compilerSwitches": "std=c++20"
     }
   ]
 }

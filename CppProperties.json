@@ -7,7 +7,7 @@
       "name": "x64-Debug",
       "includePath": [
         "${env.INCLUDE}",
-        "D:/git/vcpkg/installed/x64-windows",
+        "D:/git/vcpkg/installed/x64-windows/include",
         "${workspaceRoot}\\**"
       ],
       "defines": [
