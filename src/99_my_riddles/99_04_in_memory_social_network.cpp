@@ -56,6 +56,8 @@
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
+#include <boost/asio.hpp>
+
 
 using namespace std;
 
@@ -191,6 +193,13 @@ int main(int argc, char** argv) {
 	boost::random::uniform_int_distribution<> ten(0, 10);
 	int randomNumber = ten(rng);
 	cout << "RandonNum: " << randomNumber << endl;
+
+	boost::asio::io_service io_svc;
+	boost::asio::io_service::work worker(io_svc);
+
+	io_svc.run();
+
+	std::cout << "We will not see this line in console window :(" << std::endl;
 
 	return 0;
 }
