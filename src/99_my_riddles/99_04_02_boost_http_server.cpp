@@ -312,6 +312,7 @@ private:
     }
 };
 
+/*
 int main(int argc, char* argv[])
 {
     try
@@ -354,3 +355,4 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
+*/

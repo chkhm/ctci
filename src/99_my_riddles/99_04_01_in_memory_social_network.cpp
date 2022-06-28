@@ -27,6 +27,11 @@
 //
 // static view:
 //
+// class BoostRestServer
+//     [associated]
+//         |
+//         |
+//         >
 // class Personstore   --->
 //     [aggregates] (0,n)
 //         |
@@ -51,12 +56,12 @@
 #include <algorithm>
 #include <functional>
 
-#include <boost/lexical_cast.hpp>
-// #include <boost/random/mersenne_twister.hpp>
-#include <boost/random/random_device.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
+//#include <boost/lexical_cast.hpp>
+//#include <boost/random/mersenne_twister.hpp>
+//#include <boost/random/random_device.hpp>
+//#include <boost/random/uniform_int_distribution.hpp>
 
-#include <boost/asio.hpp>
+//#include <boost/asio.hpp>
 
 
 using namespace std;
@@ -184,22 +189,22 @@ int main(int argc, char** argv) {
 	cout << rslt << endl;
 	assert(rslt == expected_rslt);
 
-	string str = "42";
-	int x = boost::lexical_cast<int>(str);
-	cout << "x: " << x << endl;
-
-	// boost::random::mt19937 rng;
-	boost::random::random_device rng;
-	boost::random::uniform_int_distribution<> ten(0, 10);
-	int randomNumber = ten(rng);
-	cout << "RandonNum: " << randomNumber << endl;
-
-	boost::asio::io_service io_svc;
-	boost::asio::io_service::work worker(io_svc);
-
-	io_svc.run();
-
-	std::cout << "We will not see this line in console window :(" << std::endl;
+	//string str = "42";
+	//int x = boost::lexical_cast<int>(str);
+	//cout << "x: " << x << endl;
+	//
+	//// boost::random::mt19937 rng;
+	//boost::random::random_device rng;
+	//boost::random::uniform_int_distribution<> ten(0, 10);
+	//int randomNumber = ten(rng);
+	//cout << "RandonNum: " << randomNumber << endl;
+	//
+	//boost::asio::io_service io_svc;
+	//boost::asio::io_service::work worker(io_svc);
+	//
+	//io_svc.run();
+	//
+	//std::cout << "We will not see this line in console window :(" << std::endl;
 
 	return 0;
 }
