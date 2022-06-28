@@ -103,6 +103,20 @@ private:
 	set_person_t m_friends;
 };
 
+ostream& operator<<(ostream& o, const Person& p) {
+	o << "{ ";
+	o << "id: \"" << p.id();
+	o << "\", lastname: \"" << p.lastname();
+	o << "\", firstname: \"" << p.firstname();
+	o << "\", email: \"" << p.email();
+	o << "\", friends: [ ";
+
+
+
+	return o;
+}
+
+
 using person_pointer_t = shared_ptr<Person>;
 using dist_pair_t = pair<int, p_id_t>;
 
