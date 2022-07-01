@@ -13,9 +13,10 @@
 //
 //------------------------------------------------------------------------------
 
+#ifdef _WIN32
 #define _WIN32_WINNT_WIN10 0x0A00 // Windows 10
 #define _WIN32_WINNT 0x0A00 // Windows 10
-
+#endif
 
 
 #include "fields_alloc.h"
