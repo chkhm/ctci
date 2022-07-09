@@ -41,6 +41,10 @@ int main(int argc, char** argv) {
 	cout << rslt << endl;
 	assert(rslt == expected_rslt);
 
+	const char *http_server_argv[5] = { argv[0], "0.0.0.0", "8080", ".", "1" };
+	int http_server_argc = 5;
+	int server_start_rslt = run_asynch_http_server(http_server_argc, http_server_argv);
+
 	return 0;
 }
 
