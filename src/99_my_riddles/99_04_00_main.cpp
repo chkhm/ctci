@@ -22,6 +22,20 @@ int main(int argc, char** argv) {
 	for (auto p : input_persons) {
 		pc.addPerson(p);
 	}
+
+	stringstream ss;
+
+	cout << endl;
+	cout << "Test boost json:" << endl;
+	ss << *pc.person("q") << endl;
+	cout << "pc[\"q\"]: " << ss.str() << endl << endl;
+
+	Person x;
+	ss >> x;
+
+	cout << "person x: " << x << endl;
+
+
 	auto rslt = pc.suggestFriendsFor("q");
 	cout << "social network suggestion for q:" << endl;
 	cout << rslt << endl;

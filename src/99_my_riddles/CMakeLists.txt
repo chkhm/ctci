@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 #set(Boost_NO_SYSTEM_PATHS ON)
 # set(Boost_NO_BOOST_CMAKE ON)
 
-find_package(Boost 1.78.0 COMPONENTS random thread) # COMPONENTS lexical_cast PATHS D:/git/vcpkg/packages) # ${_VCPKG_INSTALLED_DIR})
+find_package(Boost 1.78.0 COMPONENTS json random thread) # COMPONENTS lexical_cast PATHS D:/git/vcpkg/packages) # ${_VCPKG_INSTALLED_DIR})
 # find_package(Boost_random)
 
 #if (Boost_FOUND)

@@ -58,6 +58,8 @@
 
 #include <stdexcept>
 
+#include <boost/json.hpp>
+
 using namespace std;
 
 using p_id_t = string;
@@ -68,6 +70,9 @@ istream &operator>>(istream &i, set_person_t &sp);
 
 class Person {
 public:
+	Person()
+		: m_id(""), m_lastname(""), m_firstname(""), m_email(""), m_friends()
+	{}
 	Person(p_id_t id, string lastname, string firstname, string email, set_person_t friends)
 		: m_id(id), m_lastname(lastname), m_firstname(firstname), m_email(email), m_friends(friends)
 	{}
@@ -99,6 +104,9 @@ private:
 	string m_email;
 	set_person_t m_friends;
 };
+
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, Person const& p);
+Person tag_invoke( boost::json::value_to_tag<Person>, boost::json::value const& jv);
 
 ostream& operator<<(ostream& o, const Person& p);
 istream& operator>>(istream& i, Person& p);
