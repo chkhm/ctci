@@ -185,21 +185,14 @@ int check_array(node_t *head, direction_t direction) {
     return 1; 
 }
 
-
-int main(int argc, char **argv) {
-    int list_len = 5;
-    if (argc > 1) {
-        list_len = atoi(argv[1]);
-    }
-    // printf("list len: %d\n", list_len);
-
+void test_algos(int list_len) {
     clock_t start_time = clock();
     node_t *head = initialize_list(list_len);
     clock_t end_time = clock();
 
-    __clock_t CLOCKS_PER_MS = CLOCKS_PER_SEC / 1000;
-
-    double timespan0 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    //__clock_t CLOCKS_PER_MS = CLOCKS_PER_SEC / 1000;
+    //double timespan0 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    clock_t timespan0 = (end_time - start_time);
     
     if (!check_array(head, up)) { printf("Error in initializing array\n"); }
     print_list(head);
@@ -207,7 +200,8 @@ int main(int argc, char **argv) {
     start_time = clock();
     algo_1_in_place_reverse_linked_list(head);
     end_time = clock();
-    double timespan1 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    // double timespan1 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    clock_t timespan1 = (end_time - start_time);
 
     if (!check_array(head, down)) { printf("Error in algo 1 \n"); }
     print_list(head);
@@ -216,7 +210,8 @@ int main(int argc, char **argv) {
     ghead = head;
     algo_2_in_place_reverse_linked_list(head);
     end_time = clock();
-    double timespan2 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    // double timespan2 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    clock_t timespan2 = (end_time - start_time);
     
     if (!check_array(head, up)) { printf("Error in algo 2 \n"); }
     print_list(head);
@@ -224,14 +219,25 @@ int main(int argc, char **argv) {
     start_time = clock();
     algo_3_in_place_reverse_linked_list(head);
     end_time = clock();
-    double timespan3 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    // double timespan3 = (double) (end_time - start_time) / CLOCKS_PER_MS;
+    clock_t timespan3 = (end_time - start_time);
 
     if (!check_array(head, down)) { printf("Error in algo 3 \n"); }
     print_list(head);
 
     printf(
-        "len: %d \t exec time: init: %f \t algo 1: %f \t algo 2: %f \t algo 3: %f\n", 
+        // "%d,\t %f,\t %f,\t %f,\t %f\n", 
+        "%6d,\t %6ld,\t %6ld,\t %6ld,\t %8ld\n", 
         list_len, timespan0, timespan1, timespan2, timespan3);
 
+}
+
+int main(int argc, char **argv) {
+    fprintf(stderr, "Output numbers are in clock speed, i.e. one micro second (us = 1/1,000,000 seconds)\n");
+    printf("   len,\t   init,\t algo_1,\t algo_2,\t algo_3\n");
+    for (int i = 1; i < argc; i++) {
+        int list_len = atoi(argv[i]);
+        test_algos(list_len);
+    }
     return 0;
 }
