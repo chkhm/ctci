@@ -152,11 +152,30 @@ node_t *initialize_list(int length) {
     return head;
 }
 
-void *free_list(node_t *head) {
+node_t *initialize_list_blocked(int length) {
+    if (length <= 0) {
+        return NULL;
+    }
+    node_t *head = malloc (length*sizeof(node_t));
+    for (int i = 0; i < length; i++) {
+        head[i].value = i;
+        head[i].next = &head[i+1];
+    }
+    head[length-1].next = NULL;
+    return head;
+}
+
+void free_list(node_t *head) {
     while (head != NULL) {
         node_t *next = head->next;
         free(head);
         head = next;
+    }
+}
+
+void free_list_blocked(node_t *head) {
+    if (head != NULL) {
+        free(head);
     }
 }
 
@@ -208,7 +227,8 @@ int check_array(node_t *head, direction_t direction) {
 
 void test_algos(int list_len) {
     clock_t start_time = clock();
-    node_t *head = initialize_list(list_len);
+    //node_t *head = initialize_list(list_len);
+    node_t *head = initialize_list_blocked(list_len);
     clock_t end_time = clock();
 
     //__clock_t CLOCKS_PER_MS = CLOCKS_PER_SEC / 1000;
@@ -259,6 +279,7 @@ void test_algos(int list_len) {
     );
     // freeing the list for some reason makes execution slower on both Mac and Linux
     // free_list(head);
+    // free_list_blocked(head);
 }
 
 int main(int argc, char **argv) {
