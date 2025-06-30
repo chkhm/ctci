@@ -195,5 +195,5 @@ behind
 
 ## Last datafile plotted: "time_99_07_mac_o2_1.csv"
 ## Last plot command
-plot 'time_99_07_mac_o2_1.csv' using 1:6 with linespoints, '' using 1:7 with linespoints, '' using 1:8 with linespoints, '' using 1:9 with linespoints
+plot 'time_99_07.csv' using 1:6 with linespoints, '' using 1:7 with linespoints, '' using 1:8 with linespoints, '' using 1:9 with linespoints
 #    EOF

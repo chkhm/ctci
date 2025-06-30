@@ -152,6 +152,14 @@ node_t *initialize_list(int length) {
     return head;
 }
 
+void *free_list(node_t *head) {
+    while (head != NULL) {
+        node_t *next = head->next;
+        free(head);
+        head = next;
+    }
+}
+
 void print_list(node_t *head) {
 
     return ;
@@ -249,7 +257,8 @@ void test_algos(int list_len) {
         list_len, timespan0, timespan1, timespan2, timespan3,
         tlr0, tlr1, tlr2, tlr3
     );
-
+    // freeing the list for some reason makes execution slower on both Mac and Linux
+    // free_list(head);
 }
 
 int main(int argc, char **argv) {

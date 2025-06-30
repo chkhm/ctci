@@ -23,3 +23,8 @@ linear (and so is the time for initializing the linked list) while the ratio goe
 ![image](./p99_07_gnuplot_performance_tlr.svg)
 
 The data for the graph above [time_99_07_mac_o2_1.csv](./time_99_07_mac_o2_1.csv) was measured on a Mac Book Air M4. The code has been compiled with clang with `-O2` optimization.
+
+When comparing the performance of the Apple M4 with the Intel Core i5, the M4 is quite a bit faster executing these algorithms. It is also interesting to note that there are some strange outliers for the initialization time of some of the lengths and some of the faster algorithms. Neither Linux nor Mac OS are Real-time OS. When using nice -n -20 the
+outliers do not go away.
+
+Note also that freeing the memory of the linked list after each cycle is pretty bad for the performance. It would probably be a better idea to allocate the memory for all nodes in one block rather than mallocing the nodes individually.
