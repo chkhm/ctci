@@ -225,16 +225,23 @@ void test_algos(int list_len) {
     if (!check_array(head, down)) { printf("Error in algo 3 \n"); }
     print_list(head);
 
+    double tlr0 = (double) timespan0/ (double) list_len;
+    double tlr1 = (double) timespan1/ (double) list_len;
+    double tlr2 = (double) timespan2/ (double) list_len;
+    double tlr3 = (double) timespan3/ (double) list_len;
+
     printf(
-        // "%d,\t %f,\t %f,\t %f,\t %f\n", 
-        "%6d,\t %6ld,\t %6ld,\t %6ld,\t %8ld\n", 
-        list_len, timespan0, timespan1, timespan2, timespan3);
+        // "%d,\t %f,\t %f,\t %f,\t %f,\t %f,\t %f,\t %f,\t %f\n", 
+        "%6d,\t %6ld,\t %6ld,\t %6ld,\t %8ld,\t %f,\t %f,\t %f,\t %f\n", 
+        list_len, timespan0, timespan1, timespan2, timespan3,
+        tlr0, tlr1, tlr2, tlr3
+    );
 
 }
 
 int main(int argc, char **argv) {
     fprintf(stderr, "Output numbers are in clock speed, i.e. one micro second (us = 1/1,000,000 seconds)\n");
-    printf("   len,\t   init,\t algo_1,\t algo_2,\t algo_3\n");
+    printf("   len,\t   init,\t algo_1,\t algo_2,\t algo_3,\t tlr0,\t tlr1,\t tlr2,\t tlr3\n");
     for (int i = 1; i < argc; i++) {
         int list_len = atoi(argv[i]);
         test_algos(list_len);

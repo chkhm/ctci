@@ -10,12 +10,16 @@ To get an idea of the performance impact I used all algorithm with lists of leng
 
 The csv file `time_99_07.csv` holds the measured time in microseconds.
 
-The file `p99_07_gnuplot_performance.gp` provides a gnuplot recipe to plot the performance from the csv file in a single graph.
-
-The file `p99_07_gnuplot_performance.svg` holds the results. Note that the graph is logarithmic on both X and Y axis. It is shown here:
+The file [p99_07_gnuplot_performance.gp](./p99_07_gnuplot_performance.gp) provides a gnuplot recipe to plot the performance from the csv file in a single graph.
+Note that the created graph is logarithmic on both X and Y axis. It is shown here:
 
 ![image](./p99_07_gnuplot_performance.svg)
 
-Here is the data for the graph above: [time_99_07.csv](./time_99_07.csv).
+Here is the data for the graph above: [time_99_07.csv](./time_99_07.csv) which is measured on an Ubuntu Linux Core i5 PC. The code has been compiled with gcc without optimization.
 
+Here is another graph created with the [p99_07_gnuplot_performance_tlr.gp](./p99_07_gnuplot_performance_tlr.gp) that shows the ratio between execution time and list length. It shows that the algorithms 1 and 2 are more or less 
+linear (and so is the time for initializing the linked list) while the ratio goes up as the list gets longer:
 
+![image](./p99_07_gnuplot_performance_tlr.svg)
+
+The data for the graph above [time_99_07_mac_o2_1.csv](./time_99_07_mac_o2_1.csv) was measured on a Mac Book Air M4. The code has been compiled with clang with `-O2` optimization.
