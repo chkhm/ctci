@@ -10,11 +10,24 @@
  * 
  * Algo 1: you can use extra memory (heap or stack)
  * Algo 2: you cannot use heap memory
- * Algo 3: you cannot use heap and you cannot park data on the stack
+ * Algo 3: you cannot use heap and you cannot park data on the stack O(1) space complexity
  * 
  * For algo 3. Of course you can use stack memory to call a function but 
  * recursive approaches that scale heap usage with the length of the linked 
  * list is not allowed. Think of a device were heap memory is limited.
+ * 
+ * More ideas:
+ * 
+ *  - The third algo is O(n2) time complexity while the others are O(n). A compromise algorithm could
+ *    use a fixed size array (still O(1) space complexity) and reverse the linked list in blocks with
+ *    the length of the array. Very long linked lists would still have a O(n2) performance but the impact
+ *    would be lower.
+ *    An array of length n would be used to hold n/2 values from the front of the list and n/2 values from 
+ *    the back of the list. 
+ * 
+ *  - The algo 1 could be parallelized by splitting the array into blocks and dealing with them in individual
+ *    threads. This should lead to an almost linear speedup. Each thread deals with a part of the values from
+ *    the front and of the values from the back of the list.
  */
 
 
